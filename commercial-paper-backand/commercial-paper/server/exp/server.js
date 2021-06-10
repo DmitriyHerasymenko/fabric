@@ -21,12 +21,13 @@ app.post("/api/login", (req, res) => {
 
 
 app.post("/api/registeruser", (req, res) => {
+    console.log("req______________________", req)
+    console.log("res______________________", res)
     const { name, company} = req.body;
     registerUser( name, company).then((data) => {
       res.send(data? data: {error: "no response"});
     });
   });
-
 
 
 app.listen(PORT, () => {

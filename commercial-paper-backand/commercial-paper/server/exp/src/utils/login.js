@@ -18,7 +18,7 @@ module.exports.login = async function login(certificate, privateKey) {
     
     console.log("<------------------------------------------>");
     const network = await gateway.getNetwork("mychannel");
-    console.log("<------------------------------------------>"); 
+    console.log("<-------------------+----------------------->"); 
     return { network, gateway, org, company, name, mspid };
   } catch (error) {
     console.log(`Error processing transaction. ${error}`);
