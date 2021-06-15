@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from '@material-ui/core/Button';
 import axiosInstance from '../../api/axiosInstance';
 import Container from '@material-ui/core/Container';
@@ -6,6 +6,9 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import { DropzoneArea } from 'material-ui-dropzone';
+import Snackbar from '@material-ui/core/Snackbar'
+import Alert from '@material-ui/lab/Alert'
+import { useHistory } from "react-router-dom"
 
 
 /**
@@ -24,88 +27,64 @@ const isPrivateKey = prKeyText => {
     return prKeyText.startsWith('-----BEGIN PRIVATE KEY-----') && prKeyText.match(/-----END PRIVATE KEY-----\s*$/)
 }
 
-const LogIn = ({changeAuthForm}) => {
-
-    const [certificate, setCertificate] = useState("");
-    const [privateKey, setPrivateKey] = useState("");
-    const [openInfo, setOpenInfo] = useState(['success', false])
-    const [infoMsg, setInfoMsg] = useState('')
-    const [countFiles, setCount] = useState(0)
+const LogIn = ({changeAuthForm, setUser}) => {
+    const [countFiles] = useState(0)
     const [certFile, setCertFile] = useState(null)
     const [keyFile, setKeyFile] = useState(null)
+    const [openInfo, setOpenInfo] = useState(['success', false])
+    const [infoMsg, setInfoMsg] = useState('')
+    const history = useHistory()
+    
     const signUp = (e) => {
         changeAuthForm()
-      
-    }
-
-    useEffect( () => {
-		localStorage.clear()
-	}, [])
+      }
 
     const LogIngRequest = async () => {
-        const certificate = localStorage.getItem('certificate')
-        const privateKey = localStorage.getItem('privateKey')
-        const resp = await axiosInstance.post("/api/login", { 'certificate': certificate, 'privateKey': privateKey })
+        if(certFile === null || keyFile === null)  {
+            setInfoMsg('Please, choose a files')
+            setOpenInfo(['error', true])
+        }
+        const resp = await axiosInstance.post("/api/login", { 'certificate': certFile, 'privateKey': keyFile })
         const name = resp.data.name
-        alert("hello" + " " + name)
+        setUser(resp.data)
+        history.push('/papers')
         return resp;
     }
 
-    const getData = () => {
-        const certificate = localStorage.getItem('certificate');
-        const privateKey = localStorage.getItem('privateKey');
-        setCertificate(certificate);
-        setPrivateKey(privateKey);
-    }
-
-    const enterFabric = () => {
-        const data = getData();
-        LogIngRequest();
-     }
+    const handleClose = (event) => {
+        setOpenInfo(false);
+    };
 
      const fileUpload = files => {
-        
-        if( files.length < countFiles) return
-        files.map(item => {
-     
-            if(item == undefined) return
-            let info = 'success'
+        if(files.length < countFiles) return
+        files.forEach(item => {
+            if(item === undefined) return
             let reader = new FileReader()
             reader.readAsText(item);
+
             reader.onload = function(){
                 let result = reader.result
                 if(isCertificate(result)){
-                    setCertFile(item.name)
+                    setCertFile(result)
                     setInfoMsg('Certificate uploaded')
                     localStorage.setItem('certificate', result)
                 } else if(isPrivateKey(result)){
-                    setKeyFile(item.name)
+                    setKeyFile(result)
                     setInfoMsg('Private key uploaded')
                     localStorage.setItem('privateKey', result)
-                } else{
-                    info = 'error'
-                    setInfoMsg('Wrong file')
-                }
-                setOpenInfo([info, true])
-                setCount(files.length)
+                } 
             }
   
-            
         })        
     }
 
     return (
-        <div>
         <Container component="main" maxWidth="xs">
             <div>
-                <Typography 
-                    component="h1"
-                    >
-                    Sign in
-                </Typography>
+      
                 <p>Please select the file that you issued after registration</p>
                 <DropzoneArea
-                    acceptedFiles={['.txt']}
+                    acceptedFiles={['application/*']}
                     showPreviews={true}
                     showPreviewsInDropzone={false}
                     useChipsForPreview
@@ -117,7 +96,7 @@ const LogIn = ({changeAuthForm}) => {
                 <Button  
                     variant="contained"                
                     fullWidth
-                    onClick={enterFabric}
+                    onClick={LogIngRequest}
                     >
                     Sign in</Button>
                 <Grid 
@@ -130,8 +109,13 @@ const LogIn = ({changeAuthForm}) => {
                     </Link>
                 </Grid>
             </div>
+            <Snackbar open={openInfo[1]} autoHideDuration={3000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity={openInfo[0]}>
+                    {infoMsg}
+                </Alert>
+            </Snackbar>
         </Container>
-        </div>
+
     )
 }
 

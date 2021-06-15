@@ -3,18 +3,22 @@ import React, { useState } from 'react';
 import Header from './components/header/Header';
 import { Route, Switch } from 'react-router'
 import AuthForm from './components/authForm/authForm';
-import Registration from './components/registration/Registration';
-import Reg from './components/registration/Reg';
-import Login from './components/logIn/logIn'
+import Papers from './components/Papers/Papers';
+
 
 const App = () => {
+  const [user, setUser] = useState(null)
+
 
   return (
     <div className="App">
-      <Header />
+      <Header user={user} setUser={setUser} />
       <Switch>
         <Route exact path="/">
-          <AuthForm />
+          <AuthForm  user={user} setUser={setUser} />
+        </Route>
+        <Route path="/papers">
+          <Papers user={user} setUser={setUser} />
         </Route>
       </Switch>
     </div>

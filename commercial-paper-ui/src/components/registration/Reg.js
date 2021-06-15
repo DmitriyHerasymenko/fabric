@@ -2,28 +2,33 @@ import React, { useState } from 'react';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import Link from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
+import FormControl from '@material-ui/core/FormControl';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import axiosInstance from '../../api/axiosInstance';
+import Snackbar from '@material-ui/core/Snackbar'
+import Alert from '@material-ui/lab/Alert'
 
 
 
-const Registration = ({changeAuthForm}) => {
+const Registration = ({ changeAuthForm, user, setUser }) => {
     const [mail, setMail] = useState('');
     const [company, setCompany] = useState('org2');
     const [certificate, setCertificate] = useState("");
     const [privateKey, setPrivateKey] = useState("");
-    const [files, setFiles] = useState(false);
-    const changeAuth = (e) => {
+    const [openInfo, setOpenInfo] = useState(['success', false])
+    const [infoMsg, setInfoMsg] = useState('')
+    const [error, serError] = useState(false)
+    const re = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+
+
+    const changeAuth = () => {
         changeAuthForm()
-      
     }
 
     const useStyles = makeStyles((theme) => ({
@@ -46,37 +51,54 @@ const Registration = ({changeAuthForm}) => {
         },
         select: {
             marginTop: "25px"
-        }
+        },
+        textField: {
+            margin: theme.spacing(1)}
+        ,
     }));
 
     const classes = useStyles();
 
-    const saveLocalStorage = () => {
-        localStorage.setItem("mail", mail);
-        localStorage.setItem("certificate", certificate);
-        localStorage.setItem("privateKey", privateKey);
-    }
-
     const SignUp = async () => {
-        if (mail != '') {
-            const resp = await axiosInstance.post("/api/registeruser", { 'name': mail, 'company': company });
-                const certificateReplace = resp.data.certificate.replace(/\\n/g, '\n').replace(/"/g, '');
-                const privateKeyReplace = resp.data.privateKey.replace(/\\r\\n/g, '\n').replace(/"/g, '');
-
-                setCertificate(certificateReplace)
-                setPrivateKey(privateKeyReplace)
-                saveLocalStorage();
-                if (files) {
-                    download(certificate, "certificate")
-                    download(privateKey, "privateKey")
-                }
+        if (mail === '' || !re.test(mail)) {
+            serError(true)
+            setInfoMsg('You must enter a name, it must be like name@domen.com')
+            setMail('')
+            setOpenInfo(['error', true])
+            return
         }
+        if (company === '') {
+            setInfoMsg('You must choice a company')
+            setOpenInfo(['error', true])
+            return
+        }
+
+        const resp = await axiosInstance.post("/api/registeruser", { 'name': mail, 'company': company });
+        if (resp.data.error === "no response") {
+            setInfoMsg('This name is already in use')
+            setOpenInfo(['error', true]);
+            return
+        }
+
+        const certificateReplace = resp.data.certificate.replace(/\\n/g, '\n').replace(/"/g, '');
+        const privateKeyReplace = resp.data.privateKey.replace(/\\r\\n/g, '\n').replace(/"/g, '');
+
+
+        setCertificate(certificateReplace)
+        setPrivateKey(privateKeyReplace)
+        download(certificateReplace, "certificate.pem")
+        download(privateKeyReplace, "privateKey.pem")
+        setOpenInfo(['success', true])
+        setInfoMsg('Registration success')
+        serError(false)
 
     }
 
     const handleName = e => setMail(e.target.value)
     const handleCompany = e => setCompany(e.target.value)
-    const saveFiles = () => setFiles(!files)
+    const handleClose = e => setOpenInfo(false);
+
+    setUser(mail)
 
     const download = (text, filename) => {
         var element = document.createElement('a');
@@ -109,21 +131,29 @@ const Registration = ({changeAuthForm}) => {
                         label="Email Address"
                         name="email"
                         autoComplete="email"
+                        error={error}
                         autoFocus
                         onChange={handleName}
                     />
-                    <Select
-                        className={classes.select}
-                        labelId="demo-simple-select-helper-label"
-                        id="simple-select"
+                    <FormControl
+                        className={classes.textField}
+                        margin="normal"
+                        variant="outlined"
                         fullWidth
-                        onChange={handleCompany}
-                        defaultValue="org2"
-
                     >
-                        <MenuItem value="org2" >Magnetocorp</MenuItem>
-                        <MenuItem value="org1">Digibank</MenuItem>
-                    </Select>
+                        <Select
+                            className={classes.select}
+                            labelId="demo-simple-select-outlined-label"
+                            id="demo-simple-select-outlined"
+                            onChange={handleCompany}
+                            defaultValue="org2"
+                        
+                        >
+
+                            <MenuItem value="org2" >Magnetocorp</MenuItem>
+                            <MenuItem value="org1">Digibank</MenuItem>
+                        </Select>
+                    </FormControl>
                     <Button
 
                         variant="contained"
@@ -133,10 +163,6 @@ const Registration = ({changeAuthForm}) => {
                     >
                         Sign In
                     </Button>
-                    <FormControlLabel
-                        control={<Checkbox value="remember" color="primary" onClick={saveFiles} />}
-                        label="Save Files"
-                    />
                     <Grid container>
                         <Grid item>
                             <Link href="#" variant="body2" onClick={changeAuth}>
@@ -146,6 +172,11 @@ const Registration = ({changeAuthForm}) => {
                     </Grid>
                 </form>
             </div>
+            <Snackbar open={openInfo[1]} autoHideDuration={3000} onClose={handleClose}>
+                <Alert onClose={handleClose} severity={openInfo[0]}>
+                    {infoMsg}
+                </Alert>
+            </Snackbar>
         </Container>
     );
 }
