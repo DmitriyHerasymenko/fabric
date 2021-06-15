@@ -43,9 +43,7 @@ module.exports = async function issue(
       `${paper.issuer} commercial paper : ${paper.paperNumber} successfully issued for value ${paper.faceValue}`
     );
     console.log("Transaction complete.");
-    
-    console.log({Key: paper.class+paper.paperNumber})
-    return { Key: paper.class + paper.paperNumber, Record: paper };
+    return  paper;
     
   } catch (error) {
     console.log(`Error processing transaction. ${error}`);

@@ -1,345 +1,174 @@
-import React, {useEffect, useState} from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import Container from "@material-ui/core/Container"
+import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
+import { makeStyles } from '@material-ui/core/styles';
+import Box from '@material-ui/core/Box';
+import Collapse from '@material-ui/core/Collapse';
+import IconButton from '@material-ui/core/IconButton';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button'
-import Typography from '@material-ui/core/Typography'
-import Snackbar from '@material-ui/core/Snackbar';
-import Alert from '@material-ui/lab/Alert';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import AddPaper from '../addPapper/addPapper';
-
+import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import axiosInstance from '../../../api/axiosInstance';
 
+const useRowStyles = makeStyles({
+  root: {
+    '& > *': {
+      borderBottom: 'unset',
+    },
+  },
+});
 
-const useStyles = makeStyles((theme) => ({
-	root: {
-		width: '100%',
-	},
-	noPaper: {
-		margin: "75px 150px",
-		display: 'grid',
-		minHeight: 100,
-		borderRadius: 10,
-		backgroundColor: '#F5F5F599',
-		border: "dashed 2px #90909090",
-		padding: 25,
-		textAlign: 'center'
-	},
-	noPaperText: {
-		fontSize: 22,
-    	margin: 'auto'
-	},
-	noPaperButton: {
-		margin: 'auto',
-		border: '1px solid rgba(0, 0, 0, 0.23)',
-		padding: '5px 20px',
-		maxWidth: 250
-	},
-	container: {
-		margin: 'auto'
-	},
-	button: {
-		color: "#00add8a0",
-	},
-	dialogItem: {
-		minWidth: 350
-	},
-	redeemedPaper:{
-		backgroundColor: '#00000033'
-	},
-
-}));
-
-const columns = [
-	{ id: 'paperNumber', label: 'PaperNo', minWidth: 100 },
-	{ id: 'issueDateTime', label: 'Issue Date', minWidth: 100 },
-	{ id: 'issuer', label: 'Issuer', minWidth: 100 },
-	{
-		id: 'owner',
-		label: 'Owner',
-		minWidth: 100
-	},
-	{
-		id: 'maturityDateTime',
-		label: 'Maturity Date Time',
-		minWidth: 100
-	},
-	{
-		id: 'faceValue',
-		label: 'Price',
-		minWidth: 100
-	},
-	{
-		id: 'button',
-		label: '',
-		minWidth: 80
-	}
-  ];
-
-const PaperList = ({user}) => {
-	
-	const classes = useStyles();
-	const [open, setOpen] = React.useState(false);
-	const [rows, setRows] = useState([])
-	const [info, setInfo] = useState(['', false])
-	const [paperHistory, setPaperHistory] = useState([])    
-	const [openHistory, setOpenHistory] = useState(false)
-	const openIssueMenu = () => {
-		setOpen(!open);
-	};
-
-	console.log("user", user)
-
-	const handleClose = (event) => {
-		setOpenHistory(false)
-	};
-	
-	const allPapers = async () => {
-		const resp = await axiosInstance.post('/api/history', {
-			certificate: localStorage.getItem('certificate'),
-			privateKey: localStorage.getItem('privateKey'),
-			paperNumber: 'all'
-		})
-		setRows(resp.data)
-	}
-
-	const viewPaperHistory = async paperNo => {
-		
-		const resp = await axiosInstance.post('/api/history', {
-			certificate: localStorage.getItem('certificate'),
-			privateKey: localStorage.getItem('privateKey'),
-			paperNumber: paperNo
-		})
-		const data = resp.data
-		let resultHistory = []
-		for(let item of data){
-			resultHistory.push(
-				(<>
-					<Typography>Status: {item['Value']['currentState']}</Typography>
-					<Typography>Time: {item['Timestamp'].replace(/[T|Z]/gm, ' ')}</Typography>
-					<Typography>Issued date: {item['Value']['issueDateTime']}</Typography>
-					<Typography>Price: {item['Value']['faceValue']}</Typography>
-					<Typography>Owner: {item['Value']['owner']}</Typography>
-					<Typography>&#8203;</Typography>
-				</>)
-			)
-		}
-		setPaperHistory(['Paper #' + paperNo, resultHistory])
-		handleClickOpen()
-	}
-
-	const issuePaper = async paper => {
-		setOpen(false)
-		const resp = await axiosInstance.post('/api/issue', paper)
-		allPapers()
-		setInfo([`Paper with number ${resp.data.Record.paperNumber} has been successfully issued`, true])
-	}
-
-	const handleClickOpen = () => {
-		setOpenHistory(true);
-	  };
-
-	const handleCloseHistory = () => {
-		setPaperHistory('')
-		setOpenHistory(false)
-	}
-
-	const buyPaper = async paper => {
-		const resp = await axiosInstance.post('/api/buy', {
-			certificate: localStorage.getItem('certificate'),
-			privateKey: localStorage.getItem('privateKey'),
-			...paper
-		})
-		allPapers()
-		setInfo([`Paper with number ${resp.data.paperNumber} has been successfully bought`, true])
-	}
-
-	const redeemPaper = async paper => {
-		const resp = await axiosInstance.post('/api/redeem', {
-			certificate: localStorage.getItem('certificate'),
-			privateKey: localStorage.getItem('privateKey'),
-			...paper
-		})
-		allPapers()
-		setInfo([`Paper with number ${resp.data.paperNumber} has been successfully redeemed`, true])
-	}
-
-	useEffect( () => {
-		allPapers()
-	}, [])
-
-	return (
-		<Container className={classes.container}>
-		{rows.length ? 
-			<Paper className={classes.root}>
-				<TableContainer className={classes.container}>
-					<Table stickyHeader aria-label="sticky table">
-						<TableHead>
-							<TableRow>
-								{columns.map((column) => (
-									<TableCell
-										key={column.id}
-										align="center"
-										style={{ minWidth: column.minWidth }}
-										>
-									{column.label}
-									</TableCell>
-								))}
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{rows.map((row) => {
-							return (
-								<TableRow 
-									className={row.Record.currentState ===  4 ? classes.redeemedPaper: ''}
-									hover={row.Record.currentState !==  4}
-									role="checkbox" 
-									tabIndex={-1} 
-									key={row.Key}>
-								{columns.map((column) => {
-									if(column.id === 'button') return 
-									const value = row.Record[column.id];
-									return (
-									<TableCell key={column.id} align='center'>
-										{value}
-									</TableCell>
-									);
-								})}
-									<TableCell key='button' align='center'>
-										{(() => {
-											if(user.company === 'org2'){
-												return (
-													<Button 
-														onClick={() => viewPaperHistory(row.Record.paperNumber)} 
-														variant="outlined" 
-														>
-														History
-													</Button>
-												)
-											} else if(row.Record.currentState ===  1){
-												return (
-													<Button 
-														variant="outlined" 
-														color="primary"
-														className={classes.button}
-														onClick={() => buyPaper(row.Record)}
-														>
-														Buy
-													</Button>
-												)
-											} else if(new Date(row.Record.maturityDateTime) > new Date()){
-												if(row.Record.currentState !==  4){
-													return (
-														<Button 
-															variant="outlined" 
-															color="secondary"
-															onClick={() => redeemPaper(row.Record)}
-															>
-															Redeem
-														</Button>
-													)
-												} else {
-													return (
-														<>Redeemed</>
-													)
-												}
-											} else {
-												return (
-													<>Await for maturity</>
-												)
-											}
-										})()}
-									</TableCell>
-
-								</TableRow>
-							);
-							})}
-							{user.company === 'org2' ? 
-								<TableRow >
-									<TableCell colSpan={7} align='center'>
-										<Button 
-											onClick={openIssueMenu} 
-											variant="outlined" 
-											// onClick={() => viewPaperHistory(row.Record.paperNumber)}
-											>
-											Issue a new paper
-										</Button>
-									</TableCell>
-								</TableRow>:
-								<></>
-							}
-						</TableBody>
-					</Table>
-				</TableContainer>
-			</Paper>:
-			<div>
-				<Paper 
-					className={classes.noPaper}
-					elevation={1}>
-					<p className={classes.noPaperText}>Magnetocorp has not issued a paper yet</p>
-					{user.company === 'org2' ? 
-						<Button 
-							className={classes.noPaperButton}
-							onClick={openIssueMenu} 
-							variant="outlined" 
-							// onClick={() => viewPaperHistory(row.Record.paperNumber)}
-							>
-							Issue a new paper
-						</Button> : <></>}
-				</Paper>
-			</div>
-		}
-
-		<Dialog
-			className={classes.dialogItem}
-			open={openHistory}
-			onClose={handleCloseHistory}
-			scroll={'paper'}
-			aria-labelledby="scroll-dialog-title"
-			aria-describedby="scroll-dialog-description"
-		>
-			<DialogTitle id="scroll-dialog-title">{paperHistory[0]}</DialogTitle>
-			<DialogContent dividers={true} className={classes.dialogItem}>
-				<DialogContentText
-					id="scroll-dialog-description"
-					// ref={descriptionElementRef}
-					tabIndex={-1}
-				>
-					{paperHistory[1]}
-				</DialogContentText>
-			</DialogContent>
-			<DialogActions>
-				<Button onClick={handleClose} color="primary">
-					Close
-				</Button>
-			</DialogActions>
-		</Dialog>
-		{open ? <AddPaper addPaper={issuePaper} lastPaper={rows.reverse()[0]} isOpen={open} close={openIssueMenu}/> : <></>}
-		<Snackbar 
-			open={info[1]} 
-			autoHideDuration={3000} 
-			onClose={() => setInfo(['', false])}
-			>
-			<Alert 
-			onClose={() => setInfo(['', false])}
-			severity='info'
-			>
-				{info[0]}
-			</Alert>
-		</Snackbar>
-	</Container>
-	)
+function createData(name, calories, fat, carbs, protein, price) {
+  return {
+    name,
+    calories,
+    fat,
+    carbs,
+    protein,
+    price,
+    history: [
+      { date: '2020-01-05', customerId: '11091700', amount: 3 },
+    ],
+  };
 }
 
-export default PaperList
+function Row (props) {
+  const { row } = props;
+  const classes = useRowStyles();
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState([])
+
+  return (
+    <React.Fragment>
+      <TableRow className={classes.root}>
+        <TableCell>
+          <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+        </TableCell>
+        <TableCell component="th" scope="row">
+          {row.name}
+        </TableCell>
+        <TableCell align="right">{row.calories}</TableCell>
+        <TableCell align="right">{row.fat}</TableCell>
+        <TableCell align="right">{row.carbs}</TableCell>
+        <TableCell align="right">{row.protein}</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box margin={1}>
+              <Typography variant="h6" gutterBottom component="div">
+                History
+              </Typography>
+              <Table size="small" aria-label="purchases">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Time</TableCell>
+                    <TableCell align="right">Issued date:</TableCell>
+                    <TableCell align="right">Price</TableCell>
+                    <TableCell align="right">Owner</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {row.history.map((historyRow) => (
+                    <TableRow key={historyRow.date}>
+                      <TableCell component="th" scope="row">
+                        {historyRow.date}
+                      </TableCell>
+                      <TableCell>{historyRow.customerId}</TableCell>
+                      <TableCell align="right">{historyRow.amount}</TableCell>
+                      <TableCell align="right">
+                        {Math.round(historyRow.amount * row.price * 100) / 100}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </React.Fragment>
+  );
+}
+
+Row.propTypes = {
+  row: PropTypes.shape({
+    calories: PropTypes.number.isRequired,
+    carbs: PropTypes.number.isRequired,
+    fat: PropTypes.number.isRequired,
+    history: PropTypes.arrayOf(
+      PropTypes.shape({
+        amount: PropTypes.number.isRequired,
+        customerId: PropTypes.string.isRequired,
+        date: PropTypes.string.isRequired,
+      }),
+    ).isRequired,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.number.isRequired,
+    protein: PropTypes.number.isRequired,
+  }).isRequired,
+};
+
+const rows = [
+  createData('Frozen yoghurt', 159, 6.0, 24, 4.0, 3.99),
+  createData('Frozen yoghurt1', 159, 6.0, 24, 4.0, 3.99),
+  createData('Frozen yoghurt66', 159, 6.0, 24, 4.0, 3.99),
+  createData('Frozen yoghurt55', 159, 6.0, 24, 4.0, 3.99),
+  createData('Frozen yoghurt44', 159, 6.0, 24, 4.0, 3.99),
+  createData('Frozen yoghurt33', 159, 6.0, 24, 4.0, 3.99),
+  createData('Frozen yoghurt2', 159, 6.0, 24, 4.0, 3.99),
+];
+
+export default function CollapsibleTable() {
+
+  const [data, setData] = useState();
+  
+  useEffect( async function () {
+    setData(await getData())
+  },[])
+
+  const getData = async () => {
+    const certificate = localStorage.getItem('certificate');
+    const privateKey = localStorage.getItem('privateKey');
+    const resp = await axiosInstance.post('/api/history', {
+      certificate,
+      privateKey,
+      paperNumber: 'all'
+    })
+    const dataMap = resp.data.map(r => r.Record)
+    return dataMap;
+  }
+  
+  console.log("da",  data)
+
+  return (
+    <TableContainer component={Paper}>
+      <Table aria-label="collapsible table">
+        <TableHead>
+          <TableRow>
+            <TableCell />
+            <TableCell>Date</TableCell>
+            <TableCell align="right">Issuer</TableCell>
+            <TableCell align="right">Owner</TableCell>
+            <TableCell align="right">Date</TableCell>
+            <TableCell align="right">Price</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((row) => (
+            <Row key={row.name} row={row} />
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}

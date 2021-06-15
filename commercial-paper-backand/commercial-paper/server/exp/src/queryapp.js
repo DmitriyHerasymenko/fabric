@@ -27,6 +27,7 @@ module.exports = async function queryApp(certificate, privateKey, paperNumber) {
       );
     }
     let json = JSON.parse(queryResponse.toString());
+    console.log("json", json)
     return json;
     
   } catch (error) {

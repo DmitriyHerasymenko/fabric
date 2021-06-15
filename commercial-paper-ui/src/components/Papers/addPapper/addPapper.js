@@ -1,7 +1,7 @@
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 import TextField from '@material-ui/core/TextField'
 import Button from '@material-ui/core/Button'
-import {MuiPickersUtilsProvider, KeyboardDatePicker} from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -11,19 +11,19 @@ import Alert from '@material-ui/lab/Alert'
 import { makeStyles } from '@material-ui/core/styles'
 
 
-const useStyles = makeStyles((theme) => ({ 
-    container:{
+const useStyles = makeStyles((theme) => ({
+    container: {
         paddingRight: 20,
         paddingLeft: 20,
         display: 'flex',
         marginTop: 20
     },
-    dialog:{
+    dialog: {
         display: 'grid',
         padding: '0px 24px 8px',
         marginTop: -10
     },
-    header:{
+    header: {
         fontSize: '1.1em',
         color: "#474747",
         marginTop: 6,
@@ -36,28 +36,28 @@ const useStyles = makeStyles((theme) => ({
     },
     textField: {
         '& label.Mui-focused': {
-        	color: "#00add8a0",
+            color: "#00add8a0",
         },
         '& .MuiInput-underline:after': {
-        	borderBottomColor: "#00add8",
+            borderBottomColor: "#00add8",
         },
         '& .MuiOutlinedInput-root': {
-			'& fieldset': {
-				borderColor: "#00add8",
-			},
-			'&:hover fieldset': {
-				borderColor: "#00add8",
-			},
-			'&.Mui-focused fieldset': {
-				borderColor: "#00add8",
-			},
+            '& fieldset': {
+                borderColor: "#00add8",
+            },
+            '&:hover fieldset': {
+                borderColor: "#00add8",
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: "#00add8",
+            },
         },
     },
- }));
+}));
 
 
 
-const AddPaper= ({addPaper, lastPaper, isOpen, close}) => {
+const AddPaper = ({ addPaper, lastPaper, isOpen, close }) => {
     const classes = useStyles()
 
     const [date, setSelectedDate] = useState(new Date())
@@ -70,33 +70,35 @@ const AddPaper= ({addPaper, lastPaper, isOpen, close}) => {
     };
 
     const issuePaper = () => {
-        if(isNaN(price) || +price <= 0){
+        if (isNaN(price) || +price <= 0) {
             setError(['Invalid price, please enter a number greater than zero', true])
             return
         }
-        if(date <= new Date()){
+        if (date <= new Date()) {
             setError(['Invalid date, please enter a date later than today', true])
             return
         }
         let pad = s => { return (s < 10) ? '0' + s : s; }
-        let redeemDate = [pad(date.getDate()), pad(date.getMonth()+1), date.getFullYear()].join('.')
+        let redeemDate = [pad(date.getDate()), pad(date.getMonth() + 1), date.getFullYear()].join('.')
         let paperNumber = lastPaper === undefined ? '' : lastPaper.Record.paperNumber
         addPaper({
-            certificate: localStorage.getItem('certificate'), 
-            privateKey: localStorage.getItem('privateKey'), 
-            paperNumber,  
-            redeemDate, 
+            certificate: localStorage.getItem('certificate'),
+            privateKey: localStorage.getItem('privateKey'),
+            paperNumber,
+            redeemDate,
             cost: price
         })
     }
 
-    const handleDateChange = (newDate) => {
+    const handleDateChange = (e) => {
         setError(false)
-        if(newDate <= new Date()){
+        if (e <= new Date()) {
             setError(['Invalid date, please enter a date later than today', true])
             return
         }
-        setSelectedDate(newDate)
+        console.log(e)
+        console.log("new data", new Date())
+        setSelectedDate(e)
     }
 
     const handlerPrice = (e) => {
@@ -106,66 +108,62 @@ const AddPaper= ({addPaper, lastPaper, isOpen, close}) => {
 
     return (
         <>
-        <Dialog open={open} onClose={() => close(false)} aria-labelledby="form-dialog-title">
-            <DialogTitle id="form-dialog-title">Issue a new paper</DialogTitle>
-            <DialogContent 
-                className={classes.dialog}
+            <Dialog open={open} onClose={() => close(false)} aria-labelledby="form-dialog-title">
+                <DialogTitle id="form-dialog-title">Add a new paper</DialogTitle>
+                <DialogContent
+                    className={classes.dialog}
                 >
-                <TextField
-                    className={classes.textField}
-                    id="standard-textarea"
-                    label="Price"
-                    onChange={handlerPrice}
-                    placeholder="5000"
-                    type="number"
-                    multiline
-                    />
-                <MuiPickersUtilsProvider className={classes.muiPicker} >
-                    <KeyboardDatePicker
+                    <TextField
                         className={classes.textField}
-                        disableToolbar
-                        variant="inline"
+                        id="standard-textarea"
+                        label="Price"
+                        onChange={handlerPrice}
+                        placeholder="5000"
+                        type="number"
+                        multiline
+                    />
+
+                    <TextField
+                        id="date"
+                        label="Birthday"
+                        type="date"
                         format="dd.MM.yyyy"
-                        margin="normal"
-                        id="date-picker-inline"
-                        label="Date picker inline"
-                        // ref={datePicker}
-                        value={date}
+                        className={classes.textField}
                         onChange={handleDateChange}
-                        KeyboardButtonProps={{
-                            'aria-label': 'change date',
+                        InputLabelProps={{
+                            shrink: true,
                         }}
                     />
-                </MuiPickersUtilsProvider>
-            </DialogContent>
-            <DialogActions>
-                <Button 
-                    className={classes.button}
-                    onClick={issuePaper}
+
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        className={classes.button}
+                        onClick={issuePaper}
                     >
-                    Issue
-                </Button>
-                <Button 
-                    className={classes.button}
-                    onClick={() => close(false)}
+                        Issue
+                    </Button>
+                    <Button
+                        className={classes.button}
+                        onClick={() => close(false)}
                     >
-                    Cancel
-                </Button>
-            </DialogActions>
-        </Dialog>
-        <Snackbar 
-            open={error[1]} 
-            autoHideDuration={3000} 
-            onClose={() => setError(['', false])}
+                        Cancel
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Snackbar
+                open={error[1]}
+                autoHideDuration={3000}
+                onClose={() => setError(['', false])}
             >
-            <Alert 
-            onClose={() => setError(['', false])}
-            severity='error'
-            >
-                {error[0]}
-            </Alert>
-        </Snackbar>
-    </>
+                <Alert
+                    onClose={() => setError(['', false])}
+                    severity='error'
+                >
+                    {error[0]}
+                </Alert>
+            </Snackbar>
+        </>
     )
 }
 
