@@ -1,170 +1,79 @@
-import React, { useState } from 'react'
-import TextField from '@material-ui/core/TextField'
-import Button from '@material-ui/core/Button'
-import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
+import React, {useState} from 'react';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import Snackbar from '@material-ui/core/Snackbar'
-import Alert from '@material-ui/lab/Alert'
-import { makeStyles } from '@material-ui/core/styles'
+import TextField from '@material-ui/core/TextField';
+import axiosInstance from '../../../api/axiosInstance';
 
+export default function AddPaper(props) {
 
-const useStyles = makeStyles((theme) => ({
-    container: {
-        paddingRight: 20,
-        paddingLeft: 20,
-        display: 'flex',
-        marginTop: 20
-    },
-    dialog: {
-        display: 'grid',
-        padding: '0px 24px 8px',
-        marginTop: -10
-    },
-    header: {
-        fontSize: '1.1em',
-        color: "#474747",
-        marginTop: 6,
-        marginBottom: 9,
-        marginLeft: '17%',
-        marginRight: '17%'
-    },
-    button: {
-        color: "#00add8a0"
-    },
-    textField: {
-        '& label.Mui-focused': {
-            color: "#00add8a0",
-        },
-        '& .MuiInput-underline:after': {
-            borderBottomColor: "#00add8",
-        },
-        '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-                borderColor: "#00add8",
-            },
-            '&:hover fieldset': {
-                borderColor: "#00add8",
-            },
-            '&.Mui-focused fieldset': {
-                borderColor: "#00add8",
-            },
-        },
-    },
-}));
+    const [open, setOpen] = React.useState(false);
+    const [cost, setCost] = useState();
+    const [date, setDate] = useState();
 
-
-
-const AddPaper = ({ addPaper, lastPaper, isOpen, close }) => {
-    const classes = useStyles()
-
-    const [date, setSelectedDate] = useState(new Date())
-    const [error, setError] = useState(['', false])
-    const [price, setPrice] = useState(0)
-    const [open, setOpen] = useState(isOpen);
-
-    const handleClose = () => {
-        close(['', false])
+    const handleClickOpen = () => {
+        setOpen(true);
     };
 
-    const issuePaper = () => {
-        if (isNaN(price) || +price <= 0) {
-            setError(['Invalid price, please enter a number greater than zero', true])
-            return
-        }
-        if (date <= new Date()) {
-            setError(['Invalid date, please enter a date later than today', true])
-            return
-        }
-        let pad = s => { return (s < 10) ? '0' + s : s; }
-        let redeemDate = [pad(date.getDate()), pad(date.getMonth() + 1), date.getFullYear()].join('.')
-        let paperNumber = lastPaper === undefined ? '' : lastPaper.Record.paperNumber
-        addPaper({
-            certificate: localStorage.getItem('certificate'),
-            privateKey: localStorage.getItem('privateKey'),
-            paperNumber,
-            redeemDate,
-            cost: price
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleName = e => setCost(e.target.value)
+    const handleDate = e => setDate(e.target.value)
+
+    const addPapeRequest = async (e) => {
+        const certificate = localStorage.getItem('certificate');
+        const privateKey = localStorage.getItem('privateKey');
+        const paperNumber = props.data.length + 1;
+        const newPaperNum = "0000" + paperNumber
+        const resp = await axiosInstance.post('/api/issue', {
+          certificate,
+          privateKey,
+          paperNumber: newPaperNum,
+          redeemDate: date,
+          cost
         })
-    }
-
-    const handleDateChange = (e) => {
-        setError(false)
-        if (e <= new Date()) {
-            setError(['Invalid date, please enter a date later than today', true])
-            return
-        }
-        console.log(e)
-        console.log("new data", new Date())
-        setSelectedDate(e)
-    }
-
-    const handlerPrice = (e) => {
-        setError(false)
-        setPrice(e.target.value)
+        handleClose();
     }
 
     return (
-        <>
-            <Dialog open={open} onClose={() => close(false)} aria-labelledby="form-dialog-title">
-                <DialogTitle id="form-dialog-title">Add a new paper</DialogTitle>
-                <DialogContent
-                    className={classes.dialog}
-                >
-                    <TextField
-                        className={classes.textField}
-                        id="standard-textarea"
-                        label="Price"
-                        onChange={handlerPrice}
-                        placeholder="5000"
-                        type="number"
-                        multiline
-                    />
-
+        <div>
+            <Button variant="outlined" color="primary" onClick={handleClickOpen}>
+                Add Paper
+            </Button>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{"Use Google's location service?"}</DialogTitle>
+                <DialogContent>
+                    <TextField id="standard-basic" label="Standard" onChange={handleName} />
                     <TextField
                         id="date"
                         label="Birthday"
                         type="date"
-                        format="dd.MM.yyyy"
-                        className={classes.textField}
-                        onChange={handleDateChange}
+                        defaultValue="2017-05-24"
                         InputLabelProps={{
                             shrink: true,
                         }}
+                        onChange={handleDate}
                     />
-
                 </DialogContent>
                 <DialogActions>
-                    <Button
-                        className={classes.button}
-                        onClick={issuePaper}
-                    >
-                        Issue
+                    <Button onClick={handleClose} color="primary">
+                        Disagree
                     </Button>
-                    <Button
-                        className={classes.button}
-                        onClick={() => close(false)}
-                    >
-                        Cancel
+                    <Button onClick={addPapeRequest} color="primary" autoFocus>
+                        Agree
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Snackbar
-                open={error[1]}
-                autoHideDuration={3000}
-                onClose={() => setError(['', false])}
-            >
-                <Alert
-                    onClose={() => setError(['', false])}
-                    severity='error'
-                >
-                    {error[0]}
-                </Alert>
-            </Snackbar>
-        </>
-    )
+        </div>
+    );
 }
-
-export default AddPaper
