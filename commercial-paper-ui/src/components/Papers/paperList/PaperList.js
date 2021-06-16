@@ -26,24 +26,12 @@ const useRowStyles = makeStyles({
   },
 });
 
-const getData = async () => {
-  const certificate = localStorage.getItem('certificate');
-  const privateKey = localStorage.getItem('privateKey');
-  const resp = await axiosInstance.post('/api/history', {
-    certificate,
-    privateKey,
-    paperNumber: 'all'
-  })
-  const dataMap = resp.data.map(r => r.Record)
-  return dataMap;
-}
 
 function Row(props) {
   const { row } = props;
-
+  useEffect(_=>{console.log("row", row)}, [])
   const classes = useRowStyles();
   const [open, setOpen] = useState(false);
-  const [rows, setRows] = useState([])
   const [history, setHistory] = useState();
 
   const historyRequest = async () => {
@@ -64,7 +52,7 @@ function Row(props) {
 
   return (
     <React.Fragment>
-      <TableRow className={classes.root}>
+      <TableRow className={classes.root} key={row.key}>
         <TableCell>
           <IconButton aria-label="expand row" size="small" onClick={historyRequest}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -124,32 +112,37 @@ function Row(props) {
   );
 }
 
-Row.propTypes = {
-  row: PropTypes.shape({
-    calories: PropTypes.number.isRequired,
-    carbs: PropTypes.number.isRequired,
-    fat: PropTypes.number.isRequired,
-    history: PropTypes.arrayOf(
-      PropTypes.shape({
-        amount: PropTypes.number.isRequired,
-        customerId: PropTypes.string.isRequired,
-        date: PropTypes.string.isRequired,
-      }),
-    ).isRequired,
-    name: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
-    protein: PropTypes.number.isRequired,
-  }).isRequired,
-};
 
 
-export default function CollapsibleTable() {
+export default function PaperList({loader}) {
+
+  const getData = async () => {
+    loader(true)
+    const certificate = localStorage.getItem('certificate');
+    const privateKey = localStorage.getItem('privateKey');
+    const resp = await axiosInstance.post('/api/history', {
+      certificate,
+      privateKey,
+      paperNumber: 'all'
+    })
+    const dataMap = resp.data.map(r => r.Record)
+    loader(false)
+    return dataMap;
+  }
+  
 
   const [data, setData] = useState();
+  const addRow = async row => {
+    
+    let newData = data;
+    newData.push(row.data)
+    setData(await getData(loader))
+  }
 
   useEffect(async function () {
     setData(await getData())
   }, [])
+
 
   return (
     <>
@@ -167,14 +160,14 @@ export default function CollapsibleTable() {
           </TableRow>
         </TableHead>
         <TableBody>
-          { data ? data.map((row) => (
+          { data  && data.map((row) => (
             <Row key={row.key} row={row} />
-          )) : <></> }
+          )) }
         </TableBody>
 
       </Table>
     </TableContainer>
-    <AddPaper data={data} />
+    <AddPaper data={data}  addRow={addRow} loader={loader}/>
     </>
   );
 }

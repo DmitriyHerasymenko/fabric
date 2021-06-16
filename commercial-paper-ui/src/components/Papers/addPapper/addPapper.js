@@ -26,6 +26,8 @@ export default function AddPaper(props) {
     const handleDate = e => setDate(e.target.value)
 
     const addPapeRequest = async (e) => {
+        props.loader(true)
+        handleClose();
         const certificate = localStorage.getItem('certificate');
         const privateKey = localStorage.getItem('privateKey');
         const paperNumber = props.data.length + 1;
@@ -37,7 +39,9 @@ export default function AddPaper(props) {
           redeemDate: date,
           cost
         })
-        handleClose();
+        await props.addRow(resp);
+        props.loader(false)
+        
     }
 
     return (
