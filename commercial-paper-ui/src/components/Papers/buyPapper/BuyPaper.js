@@ -1,22 +1,37 @@
 import React, {useState} from 'react';
 import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import TextField from '@material-ui/core/TextField';
 import axiosInstance from '../../../api/axiosInstance';
 
-export default function AddPaper(props) {
-
+const  AddPaper = props => {
+    
+    const buyRequest = async () =>  {
+        const certificate = localStorage.getItem('certificate');
+        const privateKey = localStorage.getItem('privateKey');
+        const data = props.row
+        console.log("props", data)
+        // const resp = await axiosInstance.post('/api/buy', {
+        //     certificate,
+        //     privateKey,
+        //     class: data.class,
+        //     currentState: data.currentState,
+        //     faceValue: data.faceValue,
+        //     issueDateTime: data.issueDateTime,
+        //     issuer: data.issuer,
+        //     maturityDateTime: data.maturityDateTime,
+        //     mspid: data.mspid,
+        //     owner: data.owner,
+        //     paperNumber: data.paperNumber
+        //   })
+    }
 
 
     return (
         <div>
-            <Button variant="outlined" color="primary" >
+            {props.row.owner === "digibank" ? <span>You buy this paper</span> : <Button variant="contained" size="small" color="primary"  onClick={buyRequest}>
                 Buy Paper
-            </Button>
+            </Button>}
         </div>
     );
 }
+
+export default  AddPaper;

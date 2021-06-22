@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Box from '@material-ui/core/Box';
 import Collapse from '@material-ui/core/Collapse';
@@ -17,7 +16,6 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import axiosInstance from '../../../api/axiosInstance';
 import AddPaper from '../addPapper/addPapper';
 import BuyPaper from '../buyPapper/BuyPaper';
-import { CompareArrowsOutlined } from '@material-ui/icons';
 
 
 const useRowStyles = makeStyles({
@@ -69,7 +67,7 @@ function Row(props) {
         <TableCell align="right">{row.owner}</TableCell>
         <TableCell align="right">{row.maturityDateTime}</TableCell>
         <TableCell align="right">{row.faceValue}</TableCell>
-        {props.user.company === 'org1' ? <BuyPaper/>  : <></>}
+        {props.user.company === 'org1' ? <BuyPaper row={props.row}/>  : <></>}
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
