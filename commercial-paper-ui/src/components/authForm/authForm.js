@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
-import Registration from '../registration/Reg';
-import LogIn from "../logIn/logIn";
+import Registration from '../registration/Registration';
+import LogIn from "../logIn/SigIn";
 import Backdrop from '@material-ui/core/Backdrop'
 import CircularProgress from '@material-ui/core/CircularProgress'
 import { makeStyles } from '@material-ui/core/styles';

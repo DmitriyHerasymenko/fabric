@@ -30,7 +30,6 @@ const useRowStyles = makeStyles({
 function Row(props) {
   console.log("props", props)
   const { row } = props;
-  useEffect(_=>{console.log("row", row)}, [])
   const classes = useRowStyles();
   const [open, setOpen] = useState(false);
   const [history, setHistory] = useState();
@@ -52,24 +51,24 @@ function Row(props) {
   }
 
   return (
-    <React.Fragment>
+    <React.Fragment key={props.key}>
       <TableRow className={classes.root} key={row.key}>
         <TableCell>
           { props.user.company === 'org2' ? <IconButton aria-label="expand row" size="small" onClick={historyRequest}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </IconButton> : <></>}
         </TableCell>
-        <TableCell component="right" scope="row">
+        <TableCell scope="row">
           {row.paperNumber}
         </TableCell>
-        <TableCell align="right">{row.issueDateTime}</TableCell>
-        <TableCell align="right">{row.issuer}</TableCell>
-        <TableCell align="right">{row.owner}</TableCell>
-        <TableCell align="right">{row.maturityDateTime}</TableCell>
-        <TableCell align="right">{row.faceValue}</TableCell>
-        {props.user.company === 'org1' ? <BuyPaper row={props.row}/>  : <></>}
+        <TableCell >{row.issueDateTime}</TableCell>
+        <TableCell >{row.issuer}</TableCell>
+        <TableCell >{row.owner}</TableCell>
+        <TableCell >{row.maturityDateTime}</TableCell>
+        <TableCell >{row.faceValue}</TableCell>
+        {props.user.company === 'org1' ? <BuyPaper row={props.row} loader={props.loader}/>  : <></>}
       </TableRow>
-      <TableRow>
+      <TableRow key={row.key}>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
@@ -78,7 +77,7 @@ function Row(props) {
               </Typography>
               <Table size="small" aria-label="purchases">
                 <TableHead>
-                  <TableRow>
+                  <TableRow> key={row.key}
                     <TableCell>Status</TableCell>
                     <TableCell>Time</TableCell>
                     <TableCell>Issued date</TableCell>
@@ -87,20 +86,20 @@ function Row(props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                    {history ? <TableRow>
-                      <TableCell component="th" scope="row">
+                    {history ? <TableRow key={row.key}>
+                      <TableCell  scope="row">
                         {history.Value.currentState}
                       </TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell  scope="row">
                         {history.Timestamp}
                       </TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell scope="row">
                         {history.Value.issueDateTime}
                       </TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell  scope="row">
                         {history.Value.faceValue}
                       </TableCell>
-                      <TableCell component="th" scope="row">
+                      <TableCell  scope="row">
                         {history.Value.owner}
                       </TableCell> 
                     </TableRow> :<></>} 
@@ -137,10 +136,11 @@ export default function PaperList({user, loader}) {
     
     let newData = data;
     newData.push(row.data)
+    
     setData(await getData(loader))
   }
-
-  useEffect(async function () {
+/* eslint-disable */
+  useEffect(async () =>  {
     setData(await getData())
   }, [])
 
@@ -149,19 +149,19 @@ export default function PaperList({user, loader}) {
     <TableContainer component={Paper}>
       <Table aria-label="collapsible table">
         <TableHead>
-          <TableRow>
+          <TableRow key={"header"}>  
             <TableCell />
             <TableCell>PaperNo</TableCell>
-            <TableCell align="right">Date</TableCell>
-            <TableCell align="right">Issuer</TableCell>
-            <TableCell align="right">Owner</TableCell>
-            <TableCell align="right">Maturity Date Time</TableCell>
-            <TableCell align="right">Price</TableCell>
+            <TableCell>Date</TableCell>
+            <TableCell>Issuer</TableCell>
+            <TableCell>Owner</TableCell>
+            <TableCell>Maturity Date Time</TableCell>
+            <TableCell>Price</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           { data  && data.map((row) => (
-            <Row key={row.key} row={row} user={user} />
+            <Row key={row.key} row={row} user={user} loader={loader}/>
           )) }
         </TableBody>
            
