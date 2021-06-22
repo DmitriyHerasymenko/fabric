@@ -27,7 +27,7 @@ const isPrivateKey = prKeyText => {
     return prKeyText.startsWith('-----BEGIN PRIVATE KEY-----') && prKeyText.match(/-----END PRIVATE KEY-----\s*$/)
 }
 
-const LogIn = ({changeAuthForm, setUser}) => {
+const LogIn = ({changeAuthForm, setUser, loader}) => {
     const [countFiles] = useState(0)
     const [certFile, setCertFile] = useState(null)
     const [keyFile, setKeyFile] = useState(null)
@@ -44,10 +44,12 @@ const LogIn = ({changeAuthForm, setUser}) => {
             setInfoMsg('Please, choose a files')
             setOpenInfo(['error', true])
         }
+        loader(true)
         const resp = await axiosInstance.post("/api/login", { 'certificate': certFile, 'privateKey': keyFile })
         const name = resp.data.name
         setUser(resp.data)
         history.push('/papers')
+        loader(false)
         return resp;
     }
 

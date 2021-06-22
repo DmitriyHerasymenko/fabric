@@ -7,7 +7,7 @@ import Papers from './components/Papers/Papers';
 
 
 const App = () => {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(false)
 
 
   return (

@@ -16,6 +16,8 @@ import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import axiosInstance from '../../../api/axiosInstance';
 import AddPaper from '../addPapper/addPapper';
+import BuyPaper from '../buyPapper/BuyPaper';
+import { CompareArrowsOutlined } from '@material-ui/icons';
 
 
 const useRowStyles = makeStyles({
@@ -28,6 +30,7 @@ const useRowStyles = makeStyles({
 
 
 function Row(props) {
+  console.log("props", props)
   const { row } = props;
   useEffect(_=>{console.log("row", row)}, [])
   const classes = useRowStyles();
@@ -54,9 +57,9 @@ function Row(props) {
     <React.Fragment>
       <TableRow className={classes.root} key={row.key}>
         <TableCell>
-          <IconButton aria-label="expand row" size="small" onClick={historyRequest}>
+          { props.user.company === 'org2' ? <IconButton aria-label="expand row" size="small" onClick={historyRequest}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          </IconButton> : <></>}
         </TableCell>
         <TableCell component="right" scope="row">
           {row.paperNumber}
@@ -66,6 +69,7 @@ function Row(props) {
         <TableCell align="right">{row.owner}</TableCell>
         <TableCell align="right">{row.maturityDateTime}</TableCell>
         <TableCell align="right">{row.faceValue}</TableCell>
+        {props.user.company === 'org1' ? <BuyPaper/>  : <></>}
       </TableRow>
       <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -79,7 +83,7 @@ function Row(props) {
                   <TableRow>
                     <TableCell>Status</TableCell>
                     <TableCell>Time</TableCell>
-                    <TableCell>Issued date:</TableCell>
+                    <TableCell>Issued date</TableCell>
                     <TableCell>Price</TableCell>
                     <TableCell>Owner</TableCell>
                   </TableRow>
@@ -101,7 +105,7 @@ function Row(props) {
                       <TableCell component="th" scope="row">
                         {history.Value.owner}
                       </TableCell> 
-                    </TableRow> :<></>}
+                    </TableRow> :<></>} 
                 </TableBody>
               </Table>
             </Box>
@@ -114,8 +118,7 @@ function Row(props) {
 
 
 
-export default function PaperList({loader}) {
-
+export default function PaperList({user, loader}) {
   const getData = async () => {
     loader(true)
     const certificate = localStorage.getItem('certificate');
@@ -143,7 +146,6 @@ export default function PaperList({loader}) {
     setData(await getData())
   }, [])
 
-
   return (
     <>
     <TableContainer component={Paper}>
@@ -161,13 +163,13 @@ export default function PaperList({loader}) {
         </TableHead>
         <TableBody>
           { data  && data.map((row) => (
-            <Row key={row.key} row={row} />
+            <Row key={row.key} row={row} user={user} />
           )) }
         </TableBody>
-
+           
       </Table>
     </TableContainer>
-    <AddPaper data={data}  addRow={addRow} loader={loader}/>
+    {user.company === 'org2' ? <AddPaper data={data}  addRow={addRow} loader={loader}/> : ""}
     </>
   );
 }

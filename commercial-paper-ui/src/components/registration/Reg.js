@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '@material-ui/core/Button';
+import { useHistory } from "react-router-dom"
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import Link from '@material-ui/core/Link';
@@ -16,7 +17,8 @@ import Alert from '@material-ui/lab/Alert'
 
 
 
-const Registration = ({ changeAuthForm, user, setUser }) => {
+const Registration = ({ changeAuthForm, user, setUser, loader }) => {
+    const history = useHistory()
     const [mail, setMail] = useState('');
     const [company, setCompany] = useState('org2');
     const [certificate, setCertificate] = useState("");
@@ -72,7 +74,7 @@ const Registration = ({ changeAuthForm, user, setUser }) => {
             setOpenInfo(['error', true])
             return
         }
-
+        loader(true)
         const resp = await axiosInstance.post("/api/registeruser", { 'name': mail, 'company': company });
         if (resp.data.error === "no response") {
             setInfoMsg('This name is already in use')
@@ -86,11 +88,13 @@ const Registration = ({ changeAuthForm, user, setUser }) => {
 
         setCertificate(certificateReplace)
         setPrivateKey(privateKeyReplace)
+        loader(false)
         download(certificateReplace, "certificate.pem")
         download(privateKeyReplace, "privateKey.pem")
         setOpenInfo(['success', true])
         setInfoMsg('Registration success')
         serError(false)
+        history.push('/papers')
 
     }
 
