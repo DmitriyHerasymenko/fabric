@@ -28,7 +28,6 @@ const useRowStyles = makeStyles({
 
 
 function Row(props) {
-  console.log("props", props)
   const { row } = props;
   const classes = useRowStyles();
   const [open, setOpen] = useState(false);
@@ -48,6 +47,7 @@ function Row(props) {
     }
     setOpen(!open)
 
+
   }
 
   return (
@@ -66,7 +66,7 @@ function Row(props) {
         <TableCell >{row.owner}</TableCell>
         <TableCell >{row.maturityDateTime}</TableCell>
         <TableCell >{row.faceValue}</TableCell>
-        {props.user.company === 'org1' ? <BuyPaper row={props.row} loader={props.loader}/>  : <></>}
+        {props.user.company === 'org1' ? <BuyPaper row={props.row} loader={props.loader} getData={props.getData} />  : <></>}
       </TableRow>
       <TableRow key={row.key}>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -77,7 +77,7 @@ function Row(props) {
               </Typography>
               <Table size="small" aria-label="purchases">
                 <TableHead>
-                  <TableRow> key={row.key}
+                  <TableRow> 
                     <TableCell>Status</TableCell>
                     <TableCell>Time</TableCell>
                     <TableCell>Issued date</TableCell>
@@ -127,9 +127,9 @@ export default function PaperList({user, loader}) {
     })
     const dataMap = resp.data.map(r => r.Record)
     loader(false)
-    return dataMap;
+    setData(dataMap);
   }
-  
+
 
   const [data, setData] = useState();
   const addRow = async row => {
@@ -139,9 +139,10 @@ export default function PaperList({user, loader}) {
     
     setData(await getData(loader))
   }
+
 /* eslint-disable */
   useEffect(async () =>  {
-    setData(await getData())
+    await getData()
   }, [])
 
   return (
@@ -161,13 +162,13 @@ export default function PaperList({user, loader}) {
         </TableHead>
         <TableBody>
           { data  && data.map((row) => (
-            <Row key={row.key} row={row} user={user} loader={loader}/>
+            <Row key={row.key} row={row} user={user} loader={loader} addRow={addRow} getData={getData}/>
           )) }
         </TableBody>
            
       </Table>
     </TableContainer>
-    {user.company === 'org2' ? <AddPaper data={data}  addRow={addRow} loader={loader}/> : ""}
+    {user.company === 'org2' ? <AddPaper data={data}  getData={getData} loader={loader} addRow={addRow}/> : ""}
     </>
   );
 }

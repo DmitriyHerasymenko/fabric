@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Registration from '../registration/Registration';
 import LogIn from "../logIn/SigIn";
 import Backdrop from '@material-ui/core/Backdrop'
@@ -23,9 +23,15 @@ const AuthForm = ({user, setUser}) => {
     const changeAuthForm = () => {
         setAuth(!auth)
     } 
+    useEffect(() => {console.log("user", user)}, [localStorage.getItem('user')])
+    
     return (
         <div>
-            {auth ? <Registration  changeAuthForm={changeAuthForm} user={user} setUser={setUser} loader={setLoader}/> : <LogIn changeAuthForm={changeAuthForm} user={user} setUser={setUser} loader={setLoader}/>}
+            {
+            auth ? 
+            <Registration  changeAuthForm={changeAuthForm} user={user} setUser={setUser} loader={setLoader}/> : 
+            <LogIn changeAuthForm={changeAuthForm} user={user} setUser={setUser} loader={setLoader}/>
+            }
             <Backdrop className={classes.loader} open={loader}>
                 <CircularProgress className={classes.circle} />
             </Backdrop>

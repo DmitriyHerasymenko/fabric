@@ -84,25 +84,29 @@ const Registration = ({ changeAuthForm, user, setUser, loader }) => {
       setOpenInfo(['error', true]);
       return
     }
-
+   
     const certificateReplace = resp.data.certificate.replace(/\\n/g, '\n').replace(/"/g, '');
     const privateKeyReplace = resp.data.privateKey.replace(/\\r\\n/g, '\n').replace(/"/g, '');
 
-    loader(false)
+    localStorage.setItem('certificate', certificateReplace)
+    localStorage.setItem('privateKey', privateKeyReplace)
+    localStorage.setItem('user', mail)
+
     download(certificateReplace, "certificate.pem")
     download(privateKeyReplace, "privateKey.pem")
     setOpenInfo(['success', true])
     setInfoMsg('Registration success')
     serError(false)
+    setUser({name: mail, company})
     history.push('/papers')
-
+    loader(false)
   }
 
   const handleName = e => setMail(e.target.value)
   const handleCompany = e => setCompany(e.target.value)
   const handleClose = e => setOpenInfo(false);
 
-  setUser(mail)
+  //setUser(mail)
 
   const download = (text, filename) => {
     var element = document.createElement('a');
@@ -188,7 +192,7 @@ const Registration = ({ changeAuthForm, user, setUser, loader }) => {
         </div>
 
       </Grid>
-      <Snackbar open={openInfo[1]} autoHideDuration={3000} onClose={handleClose} >
+      <Snackbar open={openInfo[1]} autoHideDuration={3000} onClose={handleClose} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}>
         <Alert onClose={handleClose} severity={openInfo[0]} >
           {infoMsg}
         </Alert>

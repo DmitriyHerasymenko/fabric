@@ -7,12 +7,11 @@ import Papers from './components/Papers/Papers';
 
 
 const App = () => {
-  const [user, setUser] = useState(false)
+const [user, setUser] = useState(false)
 
-
-  return (
+return (
     <div className="App">
-      <Header user={user} setUser={setUser} />
+      <Header user={user} setUser={setUser}/>
       <Switch>
         <Route exact path="/">
           <AuthForm  user={user} setUser={setUser} />

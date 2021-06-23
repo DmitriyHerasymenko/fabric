@@ -28,11 +28,11 @@ const Papers = ({ user, setUser }) => {
         if (!user) {
             history.replace('/')
             return (
-                <AuthForm setUser={setUser} />
+                <AuthForm user={user} setUser={setUser} />
             )
         }
     }
-
+  console.log("user", user)
 
     return (
         <div className="controllPapers" >

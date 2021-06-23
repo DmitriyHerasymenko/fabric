@@ -29,7 +29,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const options = [
-    'Settings',
     'LogOut',
 ];
 
@@ -40,6 +39,12 @@ const Header = ({ user, setUser }) => {
     const history = useHistory()
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
+    const userLocal = localStorage.getItem('user');
+
+    if(user === false) {
+       userLocal === String ? user = userLocal : history.push('/')
+    }
+
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -52,8 +57,12 @@ const Header = ({ user, setUser }) => {
     const logOut = () => {
         setUser(null)
         user = null
+        localStorage.clear()
         history.push('/')
     }
+
+
+
     return (
         <div className={classes.root}>
             <AppBar position="static">
@@ -97,7 +106,7 @@ const Header = ({ user, setUser }) => {
                                         }}
                                     >
                                         {user.name ?  options.map((option) => (
-                                            <MenuItem key={option} selected={option === 'Pyxis'} onClick={handleClose}>
+                                            <MenuItem key={option} selected={option === 'Pyxis'} onClick={logOut}>
                                                 {option}
                                             </MenuItem>
                                         )) : ""}
